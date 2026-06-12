@@ -4,7 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.vishal.domain.core.Resource
 import com.vishal.domain.movies.repository.MoviesRepository
+import com.vishal.domain.movies.usecase.GetPopularMoviesUseCase
+import com.vishal.domain.movies.usecase.GetTopRatedMoviesUseCase
 import com.vishal.domain.movies.usecase.GetTrendingMoviesUseCase
+import com.vishal.domain.movies.usecase.GetUpcomingMoviesUseCase
+import com.vishal.domain.shows.usecase.GetTopRatedShowsUseCase
 import com.vishal.domain.shows.repository.TVShowsRepository
 import com.vishal.domain.people.repository.PeopleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,11 +17,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getTrendingMoviesUseCase: GetTrendingMoviesUseCase,
+    private val getPopularMoviesUseCase: GetPopularMoviesUseCase,
+    private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
+    private val getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
+    private val getTopRatedShowsUseCase: GetTopRatedShowsUseCase,
     private val tvShowsRepository: TVShowsRepository,
     //private val peopleRepository: PeopleRepository
 ) : ViewModel() {
@@ -36,93 +45,191 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun loadMovies() {
+        _state.update { it.copy(moviesState = it.moviesState.copy(isLoading = true)) }
         viewModelScope.launch {
-            _state.update { it.copy(moviesState = it.moviesState.copy(isLoading = true)) }
+            supervisorScope {
+                launch {
+                    getTrendingMoviesUseCase().collect { result ->
+                        when (result) {
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            error = result.message
+                                        )
+                                    )
+                                }
+                            }
 
-            getTrendingMoviesUseCase().collect { result ->
-                when (result) {
-                    is Resource.Error -> {
-                        _state.update {
-                            it.copy(
-                                moviesState = it.moviesState.copy(
-                                    isLoading = false,
-                                    error = result.message
-                                )
-                            )
+                            Resource.Loading -> {}
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            trending = result.data
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
+                }
+                launch {
+                    getPopularMoviesUseCase().collect { result ->
+                        when (result) {
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            error = result.message
+                                        )
+                                    )
+                                }
+                            }
 
-                    Resource.Loading -> {}
-                    is Resource.Success -> {
-                        _state.update {
-                            it.copy(
-                                moviesState = it.moviesState.copy(
-                                    isLoading = false,
-                                    trending = result.data
-                                )
-                            )
+                            Resource.Loading -> {}
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            popular = result.data
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                launch {
+                    getTopRatedMoviesUseCase().collect { result ->
+                        when (result) {
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            error = result.message
+                                        )
+                                    )
+                                }
+                            }
+
+                            Resource.Loading -> {}
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            topRated = result.data
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                launch {
+                    getUpcomingMoviesUseCase().collect { result ->
+                        when (result) {
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            error = result.message
+                                        )
+                                    )
+                                }
+                            }
+
+                            Resource.Loading -> {}
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        moviesState = it.moviesState.copy(
+                                            isLoading = false,
+                                            upcoming = result.data
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
                 }
             }
-
-//            when (trendingDeferred) {
-//                is Resource.Success -> {
-//                    _state.update { it.copy(
-//                        moviesState = it.moviesState.copy(
-//                            trending = trendingDeferred.data,
-//                            popular = trendingDeferred.data.shuffled(), // Placeholder
-//                            topRated = trendingDeferred.data.shuffled(), // Placeholder
-//                            upcoming = trendingDeferred.data.shuffled(), // Placeholder
-//                            isLoading = false
-//                        )
-//                    ) }
-//                }
-//                is Resource.Error -> {
-//                    _state.update { it.copy(
-//                        moviesState = it.moviesState.copy(
-//                            isLoading = false,
-//                            error = trendingDeferred.message
-//                        )
-//                    ) }
-//                }
-//                Resource.Loading -> {}
-//            }
         }
+
+
     }
 
     private fun loadTVShows() {
+        _state.update { it.copy(tvShowsState = it.tvShowsState.copy(isLoading = true)) }
         viewModelScope.launch {
-            _state.update { it.copy(tvShowsState = it.tvShowsState.copy(isLoading = true)) }
-            val trendingDeferred = tvShowsRepository.getTrendingShows("day")
+            supervisorScope {
+                launch {
+                    val trendingDeferred = tvShowsRepository.getTrendingShows("day")
 
-            when (trendingDeferred) {
-                is Resource.Success -> {
-                    _state.update {
-                        it.copy(
-                            tvShowsState = it.tvShowsState.copy(
-                                trending = trendingDeferred.data,
-                                popular = trendingDeferred.data.shuffled(), // Placeholder
-                                topRated = trendingDeferred.data.shuffled(), // Placeholder
-                                upcoming = trendingDeferred.data.shuffled(), // Placeholder
-                                isLoading = false
-                            )
-                        )
+                    when (trendingDeferred) {
+                        is Resource.Success -> {
+                            _state.update {
+                                it.copy(
+                                    tvShowsState = it.tvShowsState.copy(
+                                        trending = trendingDeferred.data,
+                                        popular = trendingDeferred.data.shuffled(), // Placeholder
+                                        // topRated = trendingDeferred.data.shuffled(), // Placeholder
+                                        upcoming = trendingDeferred.data.shuffled(), // Placeholder
+                                        isLoading = false
+                                    )
+                                )
+                            }
+                        }
+
+                        is Resource.Error -> {
+                            _state.update {
+                                it.copy(
+                                    tvShowsState = it.tvShowsState.copy(
+                                        isLoading = false,
+                                        error = trendingDeferred.message
+                                    )
+                                )
+                            }
+                        }
+
+                        Resource.Loading -> {}
                     }
                 }
+                launch {
+                    getTopRatedShowsUseCase().collect { result ->
+                        when (result) {
+                            is Resource.Error -> {
+                                _state.update {
+                                    it.copy(
+                                        tvShowsState = it.tvShowsState.copy(
+                                            isLoading = false,
+                                            error = result.message
+                                        )
+                                    )
+                                }
+                            }
 
-                is Resource.Error -> {
-                    _state.update {
-                        it.copy(
-                            tvShowsState = it.tvShowsState.copy(
-                                isLoading = false,
-                                error = trendingDeferred.message
-                            )
-                        )
+                            Resource.Loading -> {}
+                            is Resource.Success -> {
+                                _state.update {
+                                    it.copy(
+                                        tvShowsState = it.tvShowsState.copy(
+                                            isLoading = false,
+                                            topRated = result.data
+                                        )
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
-
-                Resource.Loading -> {}
             }
         }
     }

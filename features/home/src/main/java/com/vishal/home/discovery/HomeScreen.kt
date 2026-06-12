@@ -72,9 +72,11 @@ fun HomeBottomNavigation(
 @Composable
 fun MoviesContent(state: MoviesState) {
     if (state.isLoading) {
-        CircularProgressIndicator(modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize())
+        CircularProgressIndicator(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize()
+        )
     } else {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             MovieCarousel(
@@ -83,7 +85,12 @@ fun MoviesContent(state: MoviesState) {
                 onMovieClick = {},
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            MovieCarousel(title = "Popular", movies = state.popular, onMovieClick = {})
+            MovieCarousel(
+                title = "Popular",
+                movies = state.popular,
+                onMovieClick = {},
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
             MovieCarousel(title = "Top Rated", movies = state.topRated, onMovieClick = {})
             MovieCarousel(title = "Upcoming", movies = state.upcoming, onMovieClick = {})
             Spacer(modifier = Modifier.height(16.dp))
@@ -94,9 +101,11 @@ fun MoviesContent(state: MoviesState) {
 @Composable
 fun TVShowsContent(state: TVShowsState) {
     if (state.isLoading) {
-        CircularProgressIndicator(modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize())
+        CircularProgressIndicator(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize()
+        )
     } else {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             TVShowCarousel(title = "Trending", shows = state.trending, onShowClick = {})

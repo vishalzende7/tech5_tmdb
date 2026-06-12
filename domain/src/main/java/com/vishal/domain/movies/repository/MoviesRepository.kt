@@ -11,8 +11,11 @@ interface MoviesRepository {
     fun getTopRatedMovies(): Flow<PagingData<Movie>>
     fun getUpcomingMovies(): Flow<PagingData<Movie>>
 
-    // Single page fetch for the Home Screen carousels
+    // List fetch for the Home Screen carousels
     suspend fun getTrendingMovies(timeWindow: String): Flow<Resource<List<Movie>>>
+    suspend fun getPopularMoviesList(page: Int = 1): Flow<Resource<List<Movie>>>
+    suspend fun getTopRatedMoviesList(page: Int = 1): Flow<Resource<List<Movie>>>
+    suspend fun getUpcomingMoviesList(page: Int = 1): Flow<Resource<List<Movie>>>
 
     // Single item fetch for the Details Screen
     suspend fun getMovieDetails(movieId: Int): Resource<MovieDetails>

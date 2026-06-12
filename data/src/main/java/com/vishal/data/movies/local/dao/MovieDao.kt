@@ -9,15 +9,33 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MovieDao {
-    @Query("SELECT * FROM movies WHERE isTrending = 1 ORDER BY voteAverage DESC")
+    @Query("SELECT * FROM trending WHERE isTrending = 1 ORDER BY voteAverage DESC")
     fun getTrendingMovies(): Flow<List<MovieEntity>>
+
+    @Query("SELECT * FROM trending WHERE isPopular = 1 ORDER BY voteAverage DESC")
+    fun getPopularMovies(): Flow<List<MovieEntity>>
+
+    @Query("SELECT * FROM trending WHERE isTopRated = 1 ORDER BY voteAverage DESC")
+    fun getTopRatedMovies(): Flow<List<MovieEntity>>
+
+    @Query("SELECT * FROM trending WHERE isUpcoming = 1 ORDER BY voteAverage DESC")
+    fun getUpcomingMovies(): Flow<List<MovieEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMovies(movies: List<MovieEntity>)
 
-    @Query("UPDATE movies SET isTrending = 0")
+    @Query("UPDATE trending SET isTrending = 0")
     suspend fun clearTrendingStatus()
 
-    @Query("DELETE FROM movies WHERE isTrending = 0")
-    suspend fun clearNonTrendingMovies()
+    @Query("UPDATE trending SET isPopular = 0")
+    suspend fun clearPopularStatus()
+
+    @Query("UPDATE trending SET isTopRated = 0")
+    suspend fun clearTopRatedStatus()
+
+    @Query("UPDATE trending SET isUpcoming = 0")
+    suspend fun clearUpcomingStatus()
+
+    @Query("DELETE FROM trending WHERE isTrending = 0 AND isPopular = 0 AND isTopRated = 0 AND isUpcoming = 0")
+    suspend fun deleteUnusedMovies()
 }

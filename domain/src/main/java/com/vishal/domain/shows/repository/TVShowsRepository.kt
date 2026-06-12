@@ -12,6 +12,7 @@ interface TVShowsRepository {
     fun getUpcomingShows(): Flow<PagingData<TVShow>> // On The Air in TMDB terms
 
     suspend fun getTrendingShows(timeWindow: String): Resource<List<TVShow>>
+    suspend fun getTopRatedShowsList(page: Int = 1): Flow<Resource<List<TVShow>>>
 
     suspend fun getTVShowDetails(showId: Int): Resource<TVShowDetails>
 }

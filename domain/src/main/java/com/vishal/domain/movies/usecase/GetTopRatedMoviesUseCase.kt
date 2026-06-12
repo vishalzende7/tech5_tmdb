@@ -6,11 +6,10 @@ import com.vishal.domain.movies.repository.MoviesRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetPopularMoviesUseCase @Inject constructor(
+class GetTopRatedMoviesUseCase @Inject constructor(
     private val repository: MoviesRepository
 ) {
     suspend operator fun invoke(page: Int = 1): Flow<Resource<List<Movie>>> {
-        println("called getPopularMoviesUseCase")
-        return repository.getPopularMoviesList(page)
+        return repository.getTopRatedMoviesList(page)
     }
 }

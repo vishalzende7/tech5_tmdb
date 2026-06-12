@@ -19,7 +19,8 @@ interface TmdbApiService {
 
     @GET("movie/popular")
     suspend fun getPopularMovies(
-        @Query("page") page: Int = 1
+        @Query("page") page: Int = 1,
+        @Query("language") language: String = "en-US"
     ): PaginatedResponseDto<MovieDto>
 
     @GET("movie/top_rated")

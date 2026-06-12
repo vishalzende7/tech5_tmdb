@@ -1,5 +1,6 @@
 package com.vishal.data.movies.repository
 
+import android.util.Log
 import androidx.paging.PagingData
 import com.vishal.data.movies.local.dao.MovieDao
 import com.vishal.data.movies.mapper.toDomain
@@ -42,6 +43,7 @@ class MoviesRepositoryImpl @Inject constructor(
                 // Update local cache
                 movieDao.clearTrendingStatus()
                 movieDao.insertMovies(entities)
+                movieDao.deleteUnusedMovies()
             } catch (e: Exception) {
                 // If network fails, try to get from cache
                 e.printStackTrace()
@@ -49,6 +51,64 @@ class MoviesRepositoryImpl @Inject constructor(
              movieDao.getTrendingMovies().transform { entities ->
                  emit(Resource.Success(entities.map { it.toDomain() }))
              }
+        }
+    }
+
+    override suspend fun getPopularMoviesList(page: Int): Flow<Resource<List<Movie>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                Log.i("VISHAL", "getPopularMoviesList called")
+                val response = remoteSource.getPopularMovies(page)
+                val entities = response.results.map { it.toEntity(isPopular = true) }
+
+                // Update local cache
+                movieDao.clearPopularStatus()
+                movieDao.insertMovies(entities)
+                movieDao.deleteUnusedMovies()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            movieDao.getPopularMovies().transform { entities ->
+                emit(Resource.Success(entities.map { it.toDomain() }))
+            }
+        }
+    }
+
+    override suspend fun getTopRatedMoviesList(page: Int): Flow<Resource<List<Movie>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = remoteSource.getTopRatedMovies(page)
+                val entities = response.results.map { it.toEntity(isTopRated = true) }
+
+                // Update local cache
+                movieDao.clearTopRatedStatus()
+                movieDao.insertMovies(entities)
+                movieDao.deleteUnusedMovies()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            movieDao.getTopRatedMovies().transform { entities ->
+                emit(Resource.Success(entities.map { it.toDomain() }))
+            }
+        }
+    }
+
+    override suspend fun getUpcomingMoviesList(page: Int): Flow<Resource<List<Movie>>> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = remoteSource.getUpcomingMovies(page)
+                val entities = response.results.map { it.toEntity(isUpcoming = true) }
+
+                // Update local cache
+                movieDao.clearUpcomingStatus()
+                movieDao.insertMovies(entities)
+                movieDao.deleteUnusedMovies()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            movieDao.getUpcomingMovies().transform { entities ->
+                emit(Resource.Success(entities.map { it.toDomain() }))
+            }
         }
     }
 

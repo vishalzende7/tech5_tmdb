@@ -7,6 +7,7 @@ import com.vishal.core.network.AuthInterceptor
 import com.vishal.core.network.RetryInterceptor
 import com.vishal.data.local.AppDatabase
 import com.vishal.data.movies.local.dao.MovieDao
+import com.vishal.data.shows.local.dao.TVShowDao
 import com.vishal.data.movies.remote.TmdbApiService
 import com.vishal.data.movies.repository.MoviesRepositoryImpl
 import com.vishal.data.people.repository.PeopleRepositoryImpl
@@ -103,5 +104,11 @@ object DatabaseModule {
     @Singleton
     fun provideMovieDao(database: AppDatabase): MovieDao {
         return database.movieDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideTVShowDao(database: AppDatabase): TVShowDao {
+        return database.tvShowDao()
     }
 }
