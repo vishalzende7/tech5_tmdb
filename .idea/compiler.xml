@@ -3,7 +3,11 @@
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel target="11">
       <module name="TMDB.core.database" target="21" />
-      <module name="TMDB.core.network" target="21" />
+      <module name="TMDB.core.mylibrary" target="21" />
+      <module name="TMDB.features.details" target="21" />
+      <module name="TMDB.features.movies" target="21" />
+      <module name="TMDB.features.peoples" target="21" />
+      <module name="TMDB.features.tvshows" target="21" />
       <module name="TMDB.mylibrary" target="21" />
     </bytecodeTargetLevel>
   </component>

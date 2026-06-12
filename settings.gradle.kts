@@ -26,3 +26,6 @@ rootProject.name = "TMDB"
 include(":app",":core")
 include(":data")
 include(":domain")
+include(":core:network")
+include(":features")
+include(":features:home")
