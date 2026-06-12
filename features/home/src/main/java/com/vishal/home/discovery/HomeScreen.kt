@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Tv
@@ -16,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.vishal.home.discovery.components.MovieCarousel
 import com.vishal.home.discovery.components.TVShowCarousel
+import com.vishal.home.movie_list.MovieListContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +39,10 @@ fun HomeScreen(
                 HomeTab.Movies -> MoviesContent(state.moviesState)
                 HomeTab.TVShows -> TVShowsContent(state.tvShowsState)
                 HomeTab.People -> PeopleContent(state.peopleState)
+                HomeTab.MovieList -> MovieListContent(
+                    state = state.movieListState,
+                    onCategorySelected = viewModel::onCategorySelected
+                )
             }
         }
     }
@@ -65,6 +71,12 @@ fun HomeBottomNavigation(
             onClick = { onTabSelected(HomeTab.People) },
             icon = { Icon(Icons.Default.Person, contentDescription = "People") },
             label = { Text("People") }
+        )
+        NavigationBarItem(
+            selected = selectedTab == HomeTab.MovieList,
+            onClick = { onTabSelected(HomeTab.MovieList) },
+            icon = { Icon(Icons.Default.List, contentDescription = "Movie List") },
+            label = { Text("Movie List") }
         )
     }
 }

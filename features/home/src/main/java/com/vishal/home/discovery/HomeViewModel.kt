@@ -2,8 +2,11 @@ package com.vishal.home.discovery
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.vishal.domain.core.Resource
 import com.vishal.domain.movies.repository.MoviesRepository
+import com.vishal.domain.movies.usecase.GetMoviesPagedUseCase
 import com.vishal.domain.movies.usecase.GetPopularMoviesUseCase
 import com.vishal.domain.movies.usecase.GetTopRatedMoviesUseCase
 import com.vishal.domain.movies.usecase.GetTrendingMoviesUseCase
@@ -12,9 +15,12 @@ import com.vishal.domain.shows.usecase.GetTopRatedShowsUseCase
 import com.vishal.domain.shows.repository.TVShowsRepository
 import com.vishal.domain.people.repository.PeopleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
@@ -26,6 +32,7 @@ class HomeViewModel @Inject constructor(
     private val getPopularMoviesUseCase: GetPopularMoviesUseCase,
     private val getTopRatedMoviesUseCase: GetTopRatedMoviesUseCase,
     private val getUpcomingMoviesUseCase: GetUpcomingMoviesUseCase,
+    private val getMoviesPagedUseCase: GetMoviesPagedUseCase,
     private val getTopRatedShowsUseCase: GetTopRatedShowsUseCase,
     private val tvShowsRepository: TVShowsRepository,
     //private val peopleRepository: PeopleRepository
@@ -38,10 +45,29 @@ class HomeViewModel @Inject constructor(
         loadMovies()
         loadTVShows()
         loadPeople()
+        updatePagedMovies("Popular")
     }
 
     fun onTabSelected(tab: HomeTab) {
         _state.update { it.copy(selectedTab = tab) }
+    }
+
+    fun onCategorySelected(category: String) {
+        _state.update { it.copy(movieListState = it.movieListState.copy(selectedCategory = category)) }
+        updatePagedMovies(category)
+    }
+
+    private fun updatePagedMovies(category: String) {
+        val pagedFlow = getMoviesPagedUseCase(category)
+            .map { resource ->
+                when (resource) {
+                    is Resource.Success -> resource.data
+                    else -> PagingData.empty()
+                }
+            }
+            .cachedIn(viewModelScope)
+        
+        _state.update { it.copy(movieListState = it.movieListState.copy(movies = pagedFlow)) }
     }
 
     private fun loadMovies() {

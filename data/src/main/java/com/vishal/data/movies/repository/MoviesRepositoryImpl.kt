@@ -1,7 +1,12 @@
 package com.vishal.data.movies.repository
 
 import android.util.Log
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.map
+import com.vishal.data.local.AppDatabase
 import com.vishal.data.movies.local.dao.MovieDao
 import com.vishal.data.movies.mapper.toDomain
 import com.vishal.data.movies.mapper.toEntity
@@ -20,18 +25,40 @@ import javax.inject.Inject
 
 class MoviesRepositoryImpl @Inject constructor(
     private val remoteSource: TmdbApiService,
-    private val movieDao: MovieDao
+    private val movieDao: MovieDao,
+    private val database: AppDatabase
 ): MoviesRepository {
+    @OptIn(ExperimentalPagingApi::class)
     override fun getPopularMovies(): Flow<PagingData<Movie>> {
-        return flow {  }
+        return Pager(
+            config = PagingConfig(pageSize = 20),
+            remoteMediator = MovieRemoteMediator(remoteSource, database, "popular"),
+            pagingSourceFactory = { movieDao.getPopularMoviesPaged() }
+        ).flow.transform { pagingData ->
+            emit(pagingData.map { it.toDomain() })
+        }
     }
 
+    @OptIn(ExperimentalPagingApi::class)
     override fun getTopRatedMovies(): Flow<PagingData<Movie>> {
-        return flow {  }
+        return Pager(
+            config = PagingConfig(pageSize = 20),
+            remoteMediator = MovieRemoteMediator(remoteSource, database, "top_rated"),
+            pagingSourceFactory = { movieDao.getTopRatedMoviesPaged() }
+        ).flow.transform { pagingData ->
+            emit(pagingData.map { it.toDomain() })
+        }
     }
 
+    @OptIn(ExperimentalPagingApi::class)
     override fun getUpcomingMovies(): Flow<PagingData<Movie>> {
-        return flow {  }
+        return Pager(
+            config = PagingConfig(pageSize = 20),
+            remoteMediator = MovieRemoteMediator(remoteSource, database, "upcoming"),
+            pagingSourceFactory = { movieDao.getUpcomingMoviesPaged() }
+        ).flow.transform { pagingData ->
+            emit(pagingData.map { it.toDomain() })
+        }
     }
 
     override suspend fun getTrendingMovies(timeWindow: String): Flow<Resource<List<Movie>>> {
