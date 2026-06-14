@@ -12,14 +12,7 @@ import javax.inject.Inject
 class GetMoviesPagedUseCase @Inject constructor(
     private val repository: MoviesRepository
 ) {
-    operator fun invoke(category: String): Flow<Resource<PagingData<Movie>>> {
-        return flow{}
-//        val flow = when (category.lowercase()) {
-//            "popular" -> repository.getPopularMovies()
-//            "top_rated" -> repository.getTopRatedMovies()
-//            "upcoming" -> repository.getUpcomingMovies()
-//            else -> throw IllegalArgumentException("Unknown category: $category")
-//        }
-//        return flow.map { Resource.Success(it) }
+    operator fun invoke(category: String): Flow<PagingData<Movie>> {
+        return repository.getPagedMoviesByCategory(category)
     }
 }

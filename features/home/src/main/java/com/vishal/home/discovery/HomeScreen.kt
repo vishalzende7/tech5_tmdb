@@ -44,7 +44,6 @@ fun HomeScreen(
                 HomeTab.TVShows -> TVShowsContent(state.tvShowsState)
                 HomeTab.People -> PeopleContent(state.peopleState)
                 HomeTab.MovieList -> MovieListContent(
-                    state = state.movieListState,
                     onCategorySelected = viewModel::onCategorySelected
                 )
             }

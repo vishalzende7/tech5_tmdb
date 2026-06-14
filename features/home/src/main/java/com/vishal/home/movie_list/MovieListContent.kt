@@ -7,34 +7,38 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.vishal.home.discovery.HomeViewModel
 import com.vishal.home.discovery.MovieListState
 import com.vishal.home.discovery.components.MovieItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieListContent(
-    state: MovieListState,
+    viewModel: HomeViewModel = hiltViewModel(),
     onCategorySelected: (String) -> Unit
 ) {
-    val movies = state.movies.collectAsLazyPagingItems()
+
     var expanded by remember { mutableStateOf(false) }
-    val categories = listOf("Popular", "Top_Rated", "Upcoming")
 
     Column(modifier = Modifier.fillMaxSize()) {
+        val movies = viewModel.pagedMovieList.collectAsLazyPagingItems()
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
+
             ExposedDropdownMenuBox(
                 expanded = expanded,
                 onExpandedChange = { expanded = !expanded }
             ) {
+                val selectedCat by viewModel.selectedCategory.collectAsState()
                 OutlinedTextField(
-                    value = state.selectedCategory,
+                    value = selectedCat,
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Category") },
@@ -45,11 +49,11 @@ fun MovieListContent(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
-                    categories.forEach { category ->
+                    MovieCategories.entries.forEach { category ->
                         DropdownMenuItem(
-                            text = { Text(category) },
+                            text = { Text(category.name) },
                             onClick = {
-                                onCategorySelected(category)
+                                onCategorySelected(category.value)
                                 expanded = false
                             }
                         )
@@ -110,4 +114,11 @@ fun MovieListItem(movie: com.vishal.domain.movies.model.Movie) {
             )
         }
     }
+}
+
+
+enum class MovieCategories(val value: String) {
+    Popular("popular"),
+    TopRated("top_rated"),
+    Upcoming("upcoming"),
 }

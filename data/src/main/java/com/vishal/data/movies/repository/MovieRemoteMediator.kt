@@ -1,11 +1,13 @@
 package com.vishal.data.movies.repository
 
+import android.util.Log
 import androidx.paging.ExperimentalPagingApi
 import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
 import com.vishal.data.database.AppDatabase
+import com.vishal.data.movies.local.entity.MovieCategoryMappingEntity
 import com.vishal.data.movies.local.entity.MovieEntity
 import com.vishal.data.movies.local.entity.MovieRemoteKeys
 import com.vishal.data.movies.mapper.toEntity
@@ -17,92 +19,97 @@ import java.io.IOException
 class MovieRemoteMediator(
     private val apiService: TmdbApiService,
     private val database: AppDatabase,
-    private val category: String
+    private val category: String,
+    private val pageSize:Int,
 ) : RemoteMediator<Int, MovieEntity>() {
 
     override suspend fun load(
         loadType: LoadType,
         state: PagingState<Int, MovieEntity>
     ): MediatorResult {
-        val page = when (loadType) {
-            LoadType.REFRESH -> {
-                val remoteKeys = getRemoteKeyAtClosestToCurrentPosition(state)
-                remoteKeys?.nextPage?.minus(1) ?: 1
-            }
-            LoadType.PREPEND -> {
-                val remoteKeys = getRemoteKeyForFirstItem(state)
-                val prevKey = remoteKeys?.prevPage
-                    ?: return MediatorResult.Success(endOfPaginationReached = remoteKeys != null)
-                prevKey
-            }
-            LoadType.APPEND -> {
-                val remoteKeys = getRemoteKeyForLastItem(state)
-                val nextKey = remoteKeys?.nextPage
-                    ?: return MediatorResult.Success(endOfPaginationReached = remoteKeys != null)
-                nextKey
-            }
-        }
+        return try {
+             val page:Int = getPageForLoadType(loadType, state)
+                ?: return MediatorResult.Success(endOfPaginationReached = true)
 
-        try {
             val response = when (category) {
                 "popular" -> apiService.getPopularMovies(page)
                 "top_rated" -> apiService.getTopRatedMovies(page)
                 "upcoming" -> apiService.getUpcomingMovies(page)
                 else -> throw IllegalArgumentException("Unknown category: $category")
             }
-
-            val movies = response.results
-            val endOfPaginationReached = movies.isEmpty()
-
+            val networkResult = response.results
+            val endOfPaginationReached = networkResult.isEmpty()
             database.withTransaction {
-                if (loadType == LoadType.REFRESH) {
-                    database.movieRemoteKeysDao().clearRemoteKeys(category)
-                    // We don't clear the whole table because it might contain other categories or trending
-                    // Instead, we might want to clear based on category status if we had that in MovieDao
-                    // For now, following the simple approach
-                }
-                val prevKey = if (page == 1) null else page - 1
-                val nextKey = if (endOfPaginationReached) null else page + 1
-                val keys = movies.map {
-                    MovieRemoteKeys(id = it.id, prevPage = prevKey, nextPage = nextKey, category = category)
-                }
-                database.movieRemoteKeysDao().insertAll(keys)
-                
-                val entities = movies.map { dto ->
-                    dto.toEntity(
+                val isRefresh = loadType == LoadType.REFRESH
 
+                if (isRefresh) {
+                    database.movieDao().clearMappingsForCategory(category)
+                    database.movieRemoteKeysDao().clearRemoteKeys(category)
+                }
+                val startingPosition = (page - 1) * pageSize
+                val nextPage = if (endOfPaginationReached) null else page + 1
+
+                val movieEntities = mutableListOf<MovieEntity>()
+                val mappingEntities = mutableListOf<MovieCategoryMappingEntity>()
+                val remoteKeyEntities = mutableListOf<MovieRemoteKeys>()
+
+                for((i,e) in networkResult.withIndex()) {
+                    movieEntities.add(e.toEntity())
+                    mappingEntities.add(
+                        MovieCategoryMappingEntity(
+                            category,
+                            e.id,
+                            startingPosition + i,
+                            title = e.title
+                        )
+                    )
+                    remoteKeyEntities.add(
+                        MovieRemoteKeys(
+                            movieId = e.id,
+                            categoryId = category,
+                            nextPage = nextPage
+                        )
                     )
                 }
-                database.movieDao().insertMovies(entities)
+
+                database.movieDao().insertMovies(movieEntities)
+                database.movieDao().insertCategoryMapping(mappingEntities)
+                database.movieRemoteKeysDao().insertAll(remoteKeyEntities)
             }
-            return MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
-        } catch (exception: IOException) {
-            return MediatorResult.Error(exception)
-        } catch (exception: HttpException) {
-            return MediatorResult.Error(exception)
+            MediatorResult.Success(endOfPaginationReached = endOfPaginationReached)
+        } catch (e: IOException) {
+            MediatorResult.Error(e)
+        } catch (e: HttpException) {
+            MediatorResult.Error(e)
         }
+
     }
 
-    private suspend fun getRemoteKeyForLastItem(state: PagingState<Int, MovieEntity>): MovieRemoteKeys? {
-        return state.pages.lastOrNull { it.data.isNotEmpty() }?.data?.lastOrNull()
-            ?.let { movie ->
-                database.movieRemoteKeysDao().getRemoteKeysByIdAndCategory(movie.id, category)
-            }
-    }
-
-    private suspend fun getRemoteKeyForFirstItem(state: PagingState<Int, MovieEntity>): MovieRemoteKeys? {
-        return state.pages.firstOrNull { it.data.isNotEmpty() }?.data?.firstOrNull()
-            ?.let { movie ->
-                database.movieRemoteKeysDao().getRemoteKeysByIdAndCategory(movie.id, category)
-            }
-    }
-
-    private suspend fun getRemoteKeyAtClosestToCurrentPosition(
+    private suspend fun getPageForLoadType(
+        loadType: LoadType,
         state: PagingState<Int, MovieEntity>
-    ): MovieRemoteKeys? {
-        return state.anchorPosition?.let { position ->
-            state.closestItemToPosition(position)?.id?.let { id ->
-                database.movieRemoteKeysDao().getRemoteKeysByIdAndCategory(id, category)
+    ): Int? {
+        Log.i("MovieRemoteMediator", "getPageForLoadType is $loadType")
+        return when (loadType) {
+            // User nav to screen for the first time
+            LoadType.REFRESH -> 1
+
+            // User scrolled to the top
+            LoadType.PREPEND -> null
+
+            // User scrolled to the bottom. Find the next page.
+            LoadType.APPEND -> {
+                val lastItem = state.lastItemOrNull()
+                    ?: return null // If DB is empty, REFRESH will handle it.
+                Log.i("MovieRemoteMediator", "Last Item  is ${lastItem.title}")
+                // Query the remote keys table for specific category
+                val remoteKey = database.movieRemoteKeysDao().getRemoteKeysByIdAndCategory(
+                    movieId = lastItem.id,
+                    category = category
+                )
+                Log.i("MovieRemoteMediator", "Current Remote Key is  is $remoteKey")
+                // Return the next page number or null
+                remoteKey?.nextPage
             }
         }
     }

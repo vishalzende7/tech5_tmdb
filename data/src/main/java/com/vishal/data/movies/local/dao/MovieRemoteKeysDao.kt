@@ -12,9 +12,9 @@ interface MovieRemoteKeysDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(remoteKey: List<MovieRemoteKeys>)
 
-    @Query("SELECT * FROM movie_remote_keys WHERE id = :id AND category = :category")
-    suspend fun getRemoteKeysByIdAndCategory(id: Int, category: String): MovieRemoteKeys?
+    @Query("SELECT * FROM movie_remote_keys WHERE movieId = :movieId AND categoryId = :category")
+    suspend fun getRemoteKeysByIdAndCategory(movieId: Int, category: String): MovieRemoteKeys?
 
-    @Query("DELETE FROM movie_remote_keys WHERE category = :category")
+    @Query("DELETE FROM movie_remote_keys WHERE categoryId = :category")
     suspend fun clearRemoteKeys(category: String)
 }

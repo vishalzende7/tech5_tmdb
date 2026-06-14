@@ -17,11 +17,13 @@ import com.vishal.domain.movies.usecase.RefreshUpcomingMovies
 import com.vishal.domain.shows.usecase.GetTopRatedShowsUseCase
 import com.vishal.domain.shows.repository.TVShowsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -39,7 +41,6 @@ class HomeViewModel @Inject constructor(
     private val refreshTopRatedMovies: RefreshTopRatedMovies,
     private val getUpcomingMoviesForHomeScreenUseCase: GetUpcomingMoviesForHomeScreenUseCase,
     private val refreshUpcomingMovies: RefreshUpcomingMovies,
-
     private val getMoviesPagedUseCase: GetMoviesPagedUseCase,
     private val getTopRatedShowsUseCase: GetTopRatedShowsUseCase,
     private val tvShowsRepository: TVShowsRepository, //fixme: remove repo
@@ -58,6 +59,14 @@ class HomeViewModel @Inject constructor(
 
     val upcomingMovies = getUpcomingMoviesForHomeScreenUseCase()
         .stateIn(viewModelScope, SharingStarted.Lazily,emptyList())
+
+    private val _selectedCategory = MutableStateFlow("popular")
+    val selectedCategory: StateFlow<String> = _selectedCategory.asStateFlow()
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val pagedMovieList = _selectedCategory.flatMapLatest {
+        getMoviesPagedUseCase(it)
+    }.cachedIn(viewModelScope)
 
     init {
         refreshHomeScreenListing()
@@ -100,129 +109,11 @@ class HomeViewModel @Inject constructor(
         _state.update { it.copy(selectedTab = tab) }
     }
 
-    fun onCategorySelected(category: String) {
-        _state.update { it.copy(movieListState = it.movieListState.copy(selectedCategory = category)) }
-        updatePagedMovies(category)
+    fun onCategorySelected(newCategory: String) {
+        if (_selectedCategory.value != newCategory) {
+            _selectedCategory.value = newCategory
+        }
     }
-
-    private fun updatePagedMovies(category: String) {
-        val pagedFlow = getMoviesPagedUseCase(category)
-            .map { resource ->
-                when (resource) {
-                    is Resource.Success -> resource.data
-                    else -> PagingData.empty()
-                }
-            }
-            .cachedIn(viewModelScope)
-        
-        _state.update { it.copy(movieListState = it.movieListState.copy(movies = pagedFlow)) }
-    }
-
-//    private fun loadMovies() {
-//        _state.update { it.copy(moviesState = it.moviesState.copy(isLoading = true)) }
-//        viewModelScope.launch {
-//            supervisorScope {
-//                launch {
-//                    getTrendingMoviesUseCase().collect { result ->
-//                        _state.update {
-//                            it.copy(
-//                                moviesState = it.moviesState.copy(
-//                                    isLoading = false,
-//                                    trending = result.data
-//                                )
-//                            )
-//                        }
-//                    }
-//                }
-//                launch {
-//                    getPopularMoviesUseCase().collect { result ->
-//                        when (result) {
-//                            is Resource.Error -> {
-//                                _state.update {
-//                                    it.copy(
-//                                        moviesState = it.moviesState.copy(
-//                                            isLoading = false,
-//                                            error = result.message
-//                                        )
-//                                    )
-//                                }
-//                            }
-//
-//                            Resource.Loading -> {}
-//                            is Resource.Success -> {
-//                                _state.update {
-//                                    it.copy(
-//                                        moviesState = it.moviesState.copy(
-//                                            isLoading = false,
-//                                            popular = result.data
-//                                        )
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//                launch {
-//                    getTopRatedMoviesUseCase().collect { result ->
-//                        when (result) {
-//                            is Resource.Error -> {
-//                                _state.update {
-//                                    it.copy(
-//                                        moviesState = it.moviesState.copy(
-//                                            isLoading = false,
-//                                            error = result.message
-//                                        )
-//                                    )
-//                                }
-//                            }
-//
-//                            Resource.Loading -> {}
-//                            is Resource.Success -> {
-//                                _state.update {
-//                                    it.copy(
-//                                        moviesState = it.moviesState.copy(
-//                                            isLoading = false,
-//                                            topRated = result.data
-//                                        )
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//                launch {
-//                    getUpcomingMoviesUseCase().collect { result ->
-//                        when (result) {
-//                            is Resource.Error -> {
-//                                _state.update {
-//                                    it.copy(
-//                                        moviesState = it.moviesState.copy(
-//                                            isLoading = false,
-//                                            error = result.message
-//                                        )
-//                                    )
-//                                }
-//                            }
-//
-//                            Resource.Loading -> {}
-//                            is Resource.Success -> {
-//                                _state.update {
-//                                    it.copy(
-//                                        moviesState = it.moviesState.copy(
-//                                            isLoading = false,
-//                                            upcoming = result.data
-//                                        )
-//                                    )
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//
-//
-//    }
 
     private fun loadTVShows() {
         _state.update { it.copy(tvShowsState = it.tvShowsState.copy(isLoading = true)) }
