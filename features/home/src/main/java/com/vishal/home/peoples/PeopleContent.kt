@@ -8,7 +8,7 @@ import androidx.compose.ui.unit.dp
 import com.vishal.home.discovery.PeopleState
 
 @Composable
-fun PeopleContent(state: PeopleState) {
+fun PeopleContent() {
     // Basic placeholder for People
     Text("People content coming soon", modifier = Modifier.padding(16.dp))
 }

@@ -2,17 +2,23 @@ package com.vishal.home
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.vishal.home.discovery.HomeScreen
+import com.vishal.home.discovery.DiscoveryScreen
 import kotlinx.serialization.Serializable
 
-// 1. Define a type-safe route object
 @Serializable
 object HomeRoute
 
-// 2. Expose an extension function to let the :app module register this screen
+@Serializable
+object DiscoveryTab
+
+@Serializable object Movies
+
+@Serializable object TvShows
+
+@Serializable object PeopleRoute
+
 fun NavGraphBuilder.homeScreen() {
     composable<HomeRoute> {
-        // Hilt ViewModel injection happens locally inside the feature module
         HomeScreen()
     }
 }
