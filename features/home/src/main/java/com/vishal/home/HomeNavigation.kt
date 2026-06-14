@@ -2,7 +2,6 @@ package com.vishal.home
 
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.vishal.home.discovery.DiscoveryScreen
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,8 +16,16 @@ object DiscoveryTab
 
 @Serializable object PeopleRoute
 
-fun NavGraphBuilder.homeScreen() {
+fun NavGraphBuilder.homeScreen(
+    onMovieClick: (Int) -> Unit,
+    onTvClick: (Int) -> Unit,
+    onPersonClick: (Int) -> Unit
+) {
     composable<HomeRoute> {
-        HomeScreen()
+        HomeScreen(
+            onMovieClick = onMovieClick,
+            onTvClick = onTvClick,
+            onPersonClick = onPersonClick
+        )
     }
 }

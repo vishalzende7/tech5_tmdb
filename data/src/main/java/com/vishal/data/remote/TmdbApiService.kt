@@ -1,5 +1,6 @@
 package com.vishal.data.remote
 
+import com.vishal.data.movies.remote.dto.MovieDetailsDto
 import com.vishal.data.movies.remote.dto.MovieDto
 import com.vishal.data.movies.remote.dto.PersonDto
 import com.vishal.data.shows.remote.dto.TVShowDto
@@ -56,4 +57,10 @@ interface TmdbApiService {
     suspend fun getPopularPeople(
         @Query("page") page: Int = 1
     ): PaginatedResponseDto<PersonDto>
+
+    @GET("movie/{movie_id}")
+    suspend fun getMovie(
+        @Path("movie_id") movieId: Int = 1,
+        @Query("language") language: String = "en-US"
+    ): MovieDetailsDto
 }

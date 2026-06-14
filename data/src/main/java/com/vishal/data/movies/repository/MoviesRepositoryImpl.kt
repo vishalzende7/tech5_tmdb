@@ -9,10 +9,13 @@ import androidx.room.withTransaction
 import com.vishal.data.database.AppDatabase
 import com.vishal.data.movies.local.entity.MovieCategoryMappingEntity
 import com.vishal.data.movies.local.entity.MovieEntity
+import com.vishal.data.movies.mapper.toDetailsDomain
 import com.vishal.data.movies.mapper.toDomain
 import com.vishal.data.movies.mapper.toEntity
 import com.vishal.data.remote.TmdbApiService
+import com.vishal.domain.core.Resource
 import com.vishal.domain.movies.model.Movie
+import com.vishal.domain.movies.model.MovieDetails
 import com.vishal.domain.movies.repository.MoviesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -99,5 +102,26 @@ class MoviesRepositoryImpl @Inject constructor(
         ).flow.map { pagingData ->
             pagingData.map { it.toDomain() }
         }
+    }
+
+    override suspend fun getMovieDetailsById(movieId: Int): Resource<MovieDetails?> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val nw = remoteSource.getMovie(movieId)
+                val e = nw.toEntity()
+                movieDao.insertMovie(e)
+                Resource.Success(e.toDetailsDomain())
+            } catch(ex: Exception) {
+                val e = movieDao.getMovie(movieId)
+                e?.let {
+                    Resource.Success(it.toDetailsDomain())
+                }?: Resource.Error("Not Found")
+            }
+        }
+    }
+
+
+    private suspend fun fetchAndStoreMovie(movieId:Int) {
+        remoteSource.getUpcomingMovies()
     }
 }

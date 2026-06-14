@@ -16,18 +16,20 @@ import com.vishal.home.discovery.components.MovieCarousel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscoveryScreen(
-    viewModel: HomeViewModel = hiltViewModel()
+    onMovieClick: (Int) -> Unit,
+    viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
     val trendingMovies by viewModel.trendingMovies.collectAsState()
 
-    DiscoveryContent(state.moviesState, trendingMovies)
+    DiscoveryContent(state.moviesState, trendingMovies, onMovieClick)
 }
 
 @Composable
 fun DiscoveryContent(
     state: MoviesState,
     trending: List<Movie>,
+    onMovieClick: (Int) -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val pop by viewModel.popularMovies.collectAsState()
@@ -45,27 +47,35 @@ fun DiscoveryContent(
             MovieCarousel(
                 title = "Trending",
                 movies = trending,
-                onMovieClick = {},
+                onMovieClick = {
+                    onMovieClick(it.id)
+                },
                 onRefreshClick = viewModel::refreshTrendingListing,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             MovieCarousel(
                 title = "Popular",
                 movies = pop,
-                onMovieClick = {},
+                onMovieClick = {
+                    onMovieClick(it.id)
+                },
                 modifier = Modifier.padding(bottom = 8.dp),
                 onRefreshClick = viewModel::refreshPopularListing,
             )
             MovieCarousel(
                 title = "Top Rated",
                 movies = topRated,
-                onMovieClick = {},
+                onMovieClick = {
+                    onMovieClick(it.id)
+                },
                 onRefreshClick = viewModel::refreshTopRatedListing,
             )
             MovieCarousel(
                 title = "Upcoming",
                 movies = upcomingMovies,
-                onMovieClick = {},
+                onMovieClick = {
+                    onMovieClick(it.id)
+                },
                 onRefreshClick = viewModel::refreshUpcomingListing,
             )
             Spacer(modifier = Modifier.height(16.dp))

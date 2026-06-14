@@ -1,7 +1,9 @@
 package com.vishal.domain.movies.repository
 
 import androidx.paging.PagingData
+import com.vishal.domain.core.Resource
 import com.vishal.domain.movies.model.Movie
+import com.vishal.domain.movies.model.MovieDetails
 import kotlinx.coroutines.flow.Flow
 
 interface MoviesRepository {
@@ -11,4 +13,6 @@ interface MoviesRepository {
 
     // For Category Listing
     fun getPagedMoviesByCategory(categoryId: String, pageSize: Int = 20): Flow<PagingData<Movie>>
+
+    suspend fun getMovieDetailsById(movieId:Int): Resource<MovieDetails?>
 }
