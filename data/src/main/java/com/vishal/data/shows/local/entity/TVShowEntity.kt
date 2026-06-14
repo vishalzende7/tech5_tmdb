@@ -12,7 +12,11 @@ data class TVShowEntity(
     val backdropPath: String?,
     val firstAirDate: String?,
     val voteAverage: Double,
-    val isTrending: Boolean = false,
-    val isPopular: Boolean = false,
-    val isTopRated: Boolean = false
+    val voteCount: Int,
+    val releaseTimeStamp: Long,
+    val genreIds: List<Int>,
+    val originalLanguage: String,
+    val originalName: String,
+    val popularity: Double,
+    val softcore: Boolean,
 )

@@ -2,10 +2,11 @@ package com.vishal.data.movies.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 
 @Entity(
     tableName = "movie_remote_keys",
-    primaryKeys = ["movieId","categoryId"],
+    primaryKeys = ["movieId", "categoryId"],
     foreignKeys = [
         ForeignKey(
             entity = MovieEntity::class,

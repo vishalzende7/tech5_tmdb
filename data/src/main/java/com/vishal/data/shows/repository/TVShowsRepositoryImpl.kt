@@ -1,61 +1,109 @@
 package com.vishal.data.shows.repository
 
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.map
+import androidx.room.withTransaction
+import com.vishal.data.database.AppDatabase
 import com.vishal.data.remote.TmdbApiService
-import com.vishal.data.shows.local.dao.TVShowDao
+import com.vishal.data.shows.local.entity.TVShowCategoryMappingEntity
+import com.vishal.data.shows.local.entity.TVShowEntity
 import com.vishal.data.shows.mapper.toDomain
 import com.vishal.data.shows.mapper.toEntity
-import com.vishal.domain.core.Resource
 import com.vishal.domain.shows.model.TVShow
-import com.vishal.domain.shows.model.TVShowDetails
 import com.vishal.domain.shows.repository.TVShowsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.transform
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class TVShowsRepositoryImpl @Inject constructor(
     private val remoteSource: TmdbApiService,
-    private val tvShowDao: TVShowDao
+    private val database: AppDatabase
 ) : TVShowsRepository {
-    override fun getPopularShows(): Flow<PagingData<TVShow>> {
-        return flow {  }
+    private val showsDao = database.tvShowDao()
+    override fun getShowsForHomeScreen(
+        categoryId: String,
+        limit: Int
+    ): Flow<List<TVShow>> {
+        return showsDao.getShowsForHomeScreen("categoryId").map { e ->
+            e.map { it.toDomain() }
+        }
     }
 
-    override fun getTopRatedShows(): Flow<PagingData<TVShow>> {
-        return flow {  }
-    }
-
-    override fun getUpcomingShows(): Flow<PagingData<TVShow>> {
-        return flow {  }
-    }
-
-    override suspend fun getTrendingShows(timeWindow: String): Resource<List<TVShow>> {
-        return Resource.Loading
-    }
-
-    override suspend fun getTopRatedShowsList(page: Int): Flow<Resource<List<TVShow>>> {
-        return withContext(Dispatchers.IO) {
+    override suspend fun refreshHomeScreenCategory(categoryId: String) {
+        withContext(Dispatchers.IO) {
             try {
-                val response = remoteSource.getTopRatedShows(page)
-                val entities = response.results.map { it.toEntity(isTopRated = true) }
+                val response = when(categoryId) {
+                    "trending" -> {
+                        remoteSource.getTrendingShows("day")
+                    }
+                    "popular" -> {
+                        remoteSource.getPopularShows(1)
+                    }
+                    "top_rated" -> {
+                        remoteSource.getTopRatedShows(1)
+                    }
+                    "upcoming" -> {
+                        remoteSource.getUpcomingShows(1)
+                    }
+                    else -> {
+                        throw IllegalArgumentException()
+                    }
+                }
 
-                // Update local cache
-                tvShowDao.clearTopRatedStatus()
-                tvShowDao.insertShows(entities)
-                tvShowDao.deleteUnusedShows()
-            } catch (e: Exception) {
+                database.withTransaction {
+                    showsDao.clearMappingsForCategory(categoryId)
+                    val nwData = response.results
+
+                    val entities = mutableListOf<TVShowEntity>()
+                    val mappingEntities = mutableListOf<TVShowCategoryMappingEntity>()
+                    for((i,e) in nwData.withIndex()) {
+                        entities.add(e.toEntity())
+                        mappingEntities.add(
+                            TVShowCategoryMappingEntity(
+                                categoryId,
+                                e.id,
+                                i,
+                                name = e.name
+                            )
+                        )
+                    }
+                    showsDao.insertShows(entities)
+                    showsDao.insertCategoryMapping(mappingEntities)
+                }
+            }catch (e: Exception) {
                 e.printStackTrace()
-            }
-            tvShowDao.getTopRatedShows().transform { entities ->
-                emit(Resource.Success(entities.map { it.toDomain() }))
             }
         }
     }
 
-    override suspend fun getTVShowDetails(showId: Int): Resource<TVShowDetails> {
-        return Resource.Loading
+    @OptIn(ExperimentalPagingApi::class)
+    override fun getPagedShowsByCategory(
+        categoryId: String,
+        pageSize: Int
+    ): Flow<PagingData<TVShow>> {
+        return Pager(
+            config = PagingConfig(
+                pageSize = pageSize,
+                prefetchDistance = (pageSize / .9).toInt(),
+                initialLoadSize = pageSize,
+                maxSize = 200,
+            ),
+            remoteMediator = TvShowRemoteMediator(
+                remoteSource,
+                database,
+                categoryId,
+                pageSize
+            ),
+            pagingSourceFactory = {
+                database.tvShowDao().getShowsForPaging(categoryId)
+            }
+        ).flow.map { pagingData ->
+            pagingData.map { it.toDomain() }
+        }
     }
 }

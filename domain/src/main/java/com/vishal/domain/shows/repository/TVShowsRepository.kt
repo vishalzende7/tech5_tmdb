@@ -2,17 +2,15 @@ package com.vishal.domain.shows.repository
 
 import androidx.paging.PagingData
 import com.vishal.domain.core.Resource
+import com.vishal.domain.movies.model.Movie
 import com.vishal.domain.shows.model.TVShow
 import com.vishal.domain.shows.model.TVShowDetails
 import kotlinx.coroutines.flow.Flow
 
 interface TVShowsRepository {
-    fun getPopularShows(): Flow<PagingData<TVShow>>
-    fun getTopRatedShows(): Flow<PagingData<TVShow>>
-    fun getUpcomingShows(): Flow<PagingData<TVShow>> // On The Air in TMDB terms
+    fun getShowsForHomeScreen(categoryId: String, limit:Int = 20): Flow<List<TVShow>>
+    suspend fun refreshHomeScreenCategory(categoryId: String)
 
-    suspend fun getTrendingShows(timeWindow: String): Resource<List<TVShow>>
-    suspend fun getTopRatedShowsList(page: Int = 1): Flow<Resource<List<TVShow>>>
-
-    suspend fun getTVShowDetails(showId: Int): Resource<TVShowDetails>
+    // For Category Listing
+    fun getPagedShowsByCategory(categoryId: String, pageSize: Int = 20): Flow<PagingData<TVShow>>
 }

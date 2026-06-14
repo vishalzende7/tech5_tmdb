@@ -2,7 +2,7 @@ package com.vishal.data.remote
 
 import com.vishal.data.movies.remote.dto.MovieDto
 import com.vishal.data.movies.remote.dto.PersonDto
-import com.vishal.data.movies.remote.dto.TVShowDto
+import com.vishal.data.shows.remote.dto.TVShowDto
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query

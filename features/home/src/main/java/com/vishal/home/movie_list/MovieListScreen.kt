@@ -10,15 +10,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
-import com.vishal.home.discovery.HomeViewModel
-import com.vishal.home.discovery.MovieListState
 import com.vishal.home.discovery.components.MovieItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MovieListContent(
-    viewModel: HomeViewModel = hiltViewModel(),
-    onCategorySelected: (String) -> Unit
+fun MovieListScreen(
+    viewModel: MovieListingViewModel = hiltViewModel(),
 ) {
 
     var expanded by remember { mutableStateOf(false) }
@@ -53,7 +50,7 @@ fun MovieListContent(
                         DropdownMenuItem(
                             text = { Text(category.name) },
                             onClick = {
-                                onCategorySelected(category.value)
+                                viewModel.onCategorySelected(category.value)
                                 expanded = false
                             }
                         )
