@@ -5,11 +5,11 @@ import androidx.paging.LoadType
 import androidx.paging.PagingState
 import androidx.paging.RemoteMediator
 import androidx.room.withTransaction
-import com.vishal.data.local.AppDatabase
+import com.vishal.data.database.AppDatabase
 import com.vishal.data.movies.local.entity.MovieEntity
 import com.vishal.data.movies.local.entity.MovieRemoteKeys
 import com.vishal.data.movies.mapper.toEntity
-import com.vishal.data.movies.remote.TmdbApiService
+import com.vishal.data.remote.TmdbApiService
 import retrofit2.HttpException
 import java.io.IOException
 
@@ -70,9 +70,7 @@ class MovieRemoteMediator(
                 
                 val entities = movies.map { dto ->
                     dto.toEntity(
-                        isPopular = category == "popular",
-                        isTopRated = category == "top_rated",
-                        isUpcoming = category == "upcoming"
+
                     )
                 }
                 database.movieDao().insertMovies(entities)

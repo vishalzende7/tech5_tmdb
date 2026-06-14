@@ -16,12 +16,7 @@ fun MovieDto.toDomain(): Movie {
     )
 }
 
-fun MovieDto.toEntity(
-    isTrending: Boolean = false,
-    isPopular: Boolean = false,
-    isTopRated: Boolean = false,
-    isUpcoming: Boolean = false
-): MovieEntity {
+fun MovieDto.toEntity(): MovieEntity {
     return MovieEntity(
         id = id,
         title = title,
@@ -30,11 +25,13 @@ fun MovieDto.toEntity(
         backdropPath = backdropPath,
         releaseDate = releaseDate,
         voteAverage = voteAverage,
+        voteCount = voteCount,
         releaseTimeStamp = getTimeStampFromDateStr(releaseDate?: ""),
-        isTrending = isTrending,
-        isPopular = isPopular,
-        isTopRated = isTopRated,
-        isUpcoming = isUpcoming
+        genreIds = genreIds,
+        originalLanguage = originalLanguage,
+        originalTitle = originalTitle,
+        popularity = popularity,
+        softcore = softcore
     )
 }
 

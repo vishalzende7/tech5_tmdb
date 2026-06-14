@@ -1,7 +1,7 @@
 package com.vishal.data.shows.repository
 
 import androidx.paging.PagingData
-import com.vishal.data.movies.remote.TmdbApiService
+import com.vishal.data.remote.TmdbApiService
 import com.vishal.data.shows.local.dao.TVShowDao
 import com.vishal.data.shows.mapper.toDomain
 import com.vishal.data.shows.mapper.toEntity

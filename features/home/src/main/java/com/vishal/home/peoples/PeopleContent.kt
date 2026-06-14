@@ -1,0 +1,14 @@
+package com.vishal.home.peoples
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.vishal.home.discovery.PeopleState
+
+@Composable
+fun PeopleContent(state: PeopleState) {
+    // Basic placeholder for People
+    Text("People content coming soon", modifier = Modifier.padding(16.dp))
+}

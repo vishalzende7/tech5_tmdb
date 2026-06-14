@@ -15,9 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.vishal.domain.movies.model.Movie
 import com.vishal.home.discovery.components.MovieCarousel
 import com.vishal.home.discovery.components.TVShowCarousel
 import com.vishal.home.movie_list.MovieListContent
+import com.vishal.home.peoples.PeopleContent
+import com.vishal.home.tv_shows.TVShowsContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +28,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val trendingMovies by viewModel.trendingMovies.collectAsState()
 
     Scaffold(
         bottomBar = {
@@ -36,7 +40,7 @@ fun HomeScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             when (state.selectedTab) {
-                HomeTab.Movies -> MoviesContent(state.moviesState)
+                HomeTab.Discovery -> HomeContent(state.moviesState, trendingMovies)
                 HomeTab.TVShows -> TVShowsContent(state.tvShowsState)
                 HomeTab.People -> PeopleContent(state.peopleState)
                 HomeTab.MovieList -> MovieListContent(
@@ -55,10 +59,10 @@ fun HomeBottomNavigation(
 ) {
     NavigationBar {
         NavigationBarItem(
-            selected = selectedTab == HomeTab.Movies,
-            onClick = { onTabSelected(HomeTab.Movies) },
-            icon = { Icon(Icons.Default.Movie, contentDescription = "Movies") },
-            label = { Text("Movies") }
+            selected = selectedTab == HomeTab.Discovery,
+            onClick = { onTabSelected(HomeTab.Discovery) },
+            icon = { Icon(Icons.Default.Movie, contentDescription = "Home") },
+            label = { Text("Discover") }
         )
         NavigationBarItem(
             selected = selectedTab == HomeTab.TVShows,
@@ -82,8 +86,16 @@ fun HomeBottomNavigation(
 }
 
 @Composable
-fun MoviesContent(state: MoviesState) {
-    if (state.isLoading) {
+fun HomeContent(
+    state: MoviesState,
+    trending: List<Movie>,
+    viewModel: HomeViewModel = hiltViewModel(),
+) {
+    val pop by viewModel.popularMovies.collectAsState()
+    val topRated by viewModel.topRatedMovies.collectAsState()
+    val upcomingMovies by viewModel.upcomingMovies.collectAsState()
+
+    if (trending.isEmpty()) {
         CircularProgressIndicator(
             modifier = Modifier
                 .fillMaxSize()
@@ -93,44 +105,32 @@ fun MoviesContent(state: MoviesState) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             MovieCarousel(
                 title = "Trending",
-                movies = state.trending,
+                movies = trending,
                 onMovieClick = {},
+                onRefreshClick = viewModel::refreshTrendingListing,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             MovieCarousel(
                 title = "Popular",
-                movies = state.popular,
+                movies = pop,
                 onMovieClick = {},
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 8.dp),
+                onRefreshClick = viewModel::refreshPopularListing,
             )
-            MovieCarousel(title = "Top Rated", movies = state.topRated, onMovieClick = {})
-            MovieCarousel(title = "Upcoming", movies = state.upcoming, onMovieClick = {})
+            MovieCarousel(
+                title = "Top Rated",
+                movies = topRated,
+                onMovieClick = {},
+                onRefreshClick = viewModel::refreshTopRatedListing,
+            )
+            MovieCarousel(
+                title = "Upcoming",
+                movies = upcomingMovies,
+                onMovieClick = {},
+                onRefreshClick = viewModel::refreshUpcomingListing,
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
-@Composable
-fun TVShowsContent(state: TVShowsState) {
-    if (state.isLoading) {
-        CircularProgressIndicator(
-            modifier = Modifier
-                .fillMaxSize()
-                .wrapContentSize()
-        )
-    } else {
-        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-            TVShowCarousel(title = "Trending", shows = state.trending, onShowClick = {})
-            TVShowCarousel(title = "Popular", shows = state.popular, onShowClick = {})
-            TVShowCarousel(title = "Top Rated", shows = state.topRated, onShowClick = {})
-            TVShowCarousel(title = "Upcoming", shows = state.upcoming, onShowClick = {})
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-    }
-}
-
-@Composable
-fun PeopleContent(state: PeopleState) {
-    // Basic placeholder for People
-    Text("People content coming soon", modifier = Modifier.padding(16.dp))
-}

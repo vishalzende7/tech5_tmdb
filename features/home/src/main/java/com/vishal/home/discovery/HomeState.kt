@@ -12,7 +12,7 @@ data class HomeState(
     val tvShowsState: TVShowsState = TVShowsState(),
     val peopleState: PeopleState = PeopleState(),
     val movieListState: MovieListState = MovieListState(),
-    val selectedTab: HomeTab = HomeTab.Movies
+    val selectedTab: HomeTab = HomeTab.Discovery
 )
 
 data class MovieListState(
@@ -47,5 +47,5 @@ data class PeopleState(
 )
 
 enum class HomeTab {
-    Movies, TVShows, People, MovieList
+    Discovery, TVShows, People, MovieList
 }

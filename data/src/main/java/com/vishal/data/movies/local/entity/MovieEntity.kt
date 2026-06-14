@@ -3,7 +3,7 @@ package com.vishal.data.movies.local.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "trending")
+@Entity(tableName = "movies")
 data class MovieEntity(
     @PrimaryKey val id: Int,
     val title: String,
@@ -12,9 +12,11 @@ data class MovieEntity(
     val backdropPath: String?,
     val releaseDate: String?,
     val voteAverage: Double,
+    val voteCount: Int,
     val releaseTimeStamp: Long,
-    val isTrending: Boolean = false,
-    val isPopular: Boolean = false,
-    val isTopRated: Boolean = false,
-    val isUpcoming: Boolean = false
+    val genreIds: List<Int>,
+    val originalLanguage: String,
+    val originalTitle: String,
+    val popularity: Double,
+    val softcore: Boolean,
 )
