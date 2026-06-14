@@ -5,7 +5,6 @@ This document outlines the directory and module structure of the TMDB Android pr
 ## Root Directory
 - `app/`: Main application module.
 - `core/`: Shared core modules.
-- `data/`: Data layer module.
 - `domain/`: Domain layer module.
 - `features/`: Feature-specific modules.
 - `gradle/`: Gradle wrapper and version catalogs.
@@ -27,7 +26,6 @@ The `app` module serves as the entry point of the application.
 
 ## Core Modules (`core`)
 Contains shared infrastructure and utilities.
-- `database/`: Database configuration and entities (Room).
 - `network/`: Network configuration (Retrofit, OkHttp).
     - `src/main/java/com/vishal/core/network/`
         - `AuthInterceptor.kt`: Interceptor for API authentication.

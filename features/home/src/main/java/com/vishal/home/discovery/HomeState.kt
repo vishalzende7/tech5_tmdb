@@ -1,14 +1,25 @@
 package com.vishal.home.discovery
 
+import androidx.paging.PagingData
 import com.vishal.domain.movies.model.Movie
 import com.vishal.domain.shows.model.TVShow
 import com.vishal.domain.people.model.Person
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 data class HomeState(
     val moviesState: MoviesState = MoviesState(),
     val tvShowsState: TVShowsState = TVShowsState(),
     val peopleState: PeopleState = PeopleState(),
-    val selectedTab: HomeTab = HomeTab.Movies
+    val movieListState: MovieListState = MovieListState(),
+    val selectedTab: HomeTab = HomeTab.Discovery
+)
+
+data class MovieListState(
+    val movies: Flow<PagingData<Movie>> = emptyFlow(),
+    val selectedCategory: String = "Popular",
+    val isLoading: Boolean = false,
+    val error: String? = null
 )
 
 data class MoviesState(
@@ -36,5 +47,5 @@ data class PeopleState(
 )
 
 enum class HomeTab {
-    Movies, TVShows, People
+    Discovery, TVShows, People, MovieList
 }
