@@ -11,12 +11,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.vishal.domain.shows.model.TVShow
-import com.vishal.home.discovery.components.MovieItem
 import com.vishal.home.tv_shows.components.TvShowItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShowListingScreen(
+fun TVShowListingScreen(
+    onTvClick: (Int) -> Unit,
     viewModel: TvShowsListingViewModel = hiltViewModel()
 ) {
 
@@ -72,7 +72,7 @@ fun ShowListingScreen(
             ) { index ->
                 val tvShow = shows[index]
                 tvShow?.let {
-                    ShowListItem(item = it)
+                    ShowListItem(item = it, onTvClick)
                 }
             }
         }
@@ -80,7 +80,7 @@ fun ShowListingScreen(
 }
 
 @Composable
-fun ShowListItem(item: TVShow) {
+fun ShowListItem(item: TVShow, onTvClick: (Int) -> Unit,) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -89,7 +89,9 @@ fun ShowListItem(item: TVShow) {
     ) {
         TvShowItem(
             tvShow = item,
-            onClick = {},
+            onClick = {
+                onTvClick(item.id)
+            },
             modifier = Modifier.width(120.dp)
         )
         Column(

@@ -25,10 +25,14 @@ import androidx.navigation.compose.rememberNavController
 import com.vishal.home.discovery.DiscoveryScreen
 import com.vishal.home.movie_list.MovieListScreen
 import com.vishal.home.peoples.PeopleContent
-import com.vishal.home.tv_shows.ShowListingScreen
+import com.vishal.home.tv_shows.TVShowListingScreen
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onMovieClick: (Int) -> Unit,
+    onTvClick: (Int) -> Unit,
+    onPersonClick: (Int) -> Unit
+) {
     val homeNavController = rememberNavController()
 
     Scaffold(
@@ -42,13 +46,19 @@ fun HomeScreen() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable<DiscoveryTab> {
-                DiscoveryScreen()
+                DiscoveryScreen(
+                    onMovieClick = onMovieClick
+                )
             }
             composable<Movies> {
-                MovieListScreen()
+                MovieListScreen(
+                    onMovieClick = onMovieClick
+                )
             }
             composable<TvShows> {
-                ShowListingScreen()
+                TVShowListingScreen(
+                    onTvClick = onTvClick
+                )
             }
             composable<PeopleRoute> {
                 PeopleContent()

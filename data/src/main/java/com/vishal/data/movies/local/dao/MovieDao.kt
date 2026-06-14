@@ -34,6 +34,12 @@ interface MovieDao {
     )
     fun getMoviesForPaging(categoryId: String): PagingSource<Int, MovieEntity>
 
+    @Query("SELECT * from movies where id = :movieId LIMIT 1")
+    fun getMovie(movieId:Int): MovieEntity?
+
+    @Upsert
+    suspend fun insertMovie(entity: MovieEntity)
+
     //Write Queries
     @Upsert
     suspend fun insertMovies(movies: List<MovieEntity>)

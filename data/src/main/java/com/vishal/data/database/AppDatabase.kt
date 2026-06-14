@@ -24,7 +24,7 @@ import com.vishal.data.shows.local.entity.TVShowEntity
         TVShowCategoryMappingEntity::class,
         ShowsRemoteKeys::class
     ],
-    version = 14
+    version = 15
 )
 @TypeConverters(RoomTypeConverters::class)
 abstract class AppDatabase : RoomDatabase() {

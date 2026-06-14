@@ -15,8 +15,11 @@ data class MovieEntity(
     val voteCount: Int,
     val releaseTimeStamp: Long,
     val genreIds: List<Int>,
+    val genre: List<String>? = null,
     val originalLanguage: String,
     val originalTitle: String,
     val popularity: Double,
     val softcore: Boolean,
+    val tagline: String? = null,
+    val runtime:Int? = null
 )

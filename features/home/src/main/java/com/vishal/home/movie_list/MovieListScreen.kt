@@ -10,11 +10,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import com.vishal.domain.movies.model.Movie
 import com.vishal.home.discovery.components.MovieItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MovieListScreen(
+    onMovieClick: (Int) -> Unit,
     viewModel: MovieListingViewModel = hiltViewModel(),
 ) {
 
@@ -70,7 +72,7 @@ fun MovieListScreen(
             ) { index ->
                 val movie = movies[index]
                 movie?.let {
-                    MovieListItem(movie = it)
+                    MovieListItem(movie = it, onMovieClick)
                 }
             }
         }
@@ -78,7 +80,7 @@ fun MovieListScreen(
 }
 
 @Composable
-fun MovieListItem(movie: com.vishal.domain.movies.model.Movie) {
+fun MovieListItem(movie: Movie,onMovieClick: (Int) -> Unit, ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -87,7 +89,9 @@ fun MovieListItem(movie: com.vishal.domain.movies.model.Movie) {
     ) {
         MovieItem(
             movie = movie,
-            onClick = {},
+            onClick = {
+                onMovieClick(movie.id)
+            },
             modifier = Modifier.width(120.dp)
         )
         Column(

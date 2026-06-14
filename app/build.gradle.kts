@@ -68,6 +68,7 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     implementation(project(":features:home"))
+    implementation(project(":features:details"))
     implementation(project(":data"))
     implementation(project(":domain"))
     implementation(project(":core:network"))
