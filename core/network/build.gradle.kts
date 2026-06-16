@@ -36,6 +36,8 @@ dependencies {
 //    implementation(libs.okhttp.logging.interceptor)
 //    implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
+    testImplementation(libs.mockwebserver)
+    testImplementation(libs.mockk)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }
