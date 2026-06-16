@@ -23,6 +23,10 @@ navigationCompose = "2.8.3"
 kotlinxSerialization = "1.6.3"
 room_version = "2.8.4"
 okhttpProfiler = "1.1.1"
+mockk = "1.13.8"
+coroutinesTest = "1.11.0"
+turbine = "1.0.0"
+mockwebserver = "4.12.0"
 
 [libraries]
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
@@ -62,6 +66,10 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room_version" }
 androidx-room-paging = { group = "androidx.room", name = "room-paging", version.ref = "room_version" }
 okhttp-profiler = {group = "io.nerdythings", name = "okhttp-profiler", version.ref = "okhttpProfiler"}
+mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "mockwebserver" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
